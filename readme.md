@@ -8,8 +8,8 @@ A point belongs to the Mendelbrot set if the series
 ```math
   z_c(n) := \begin{cases} 0, & \text{if } n-1 = 0\\z_c(n-1)^2 + c, &\text{if } n-1 > 0\end{cases}
 ```
-converges.
+is bounded.
 That is if:
 ```math
- c \in \mathbf{M} \iff lim_{x \to \infty}{z_c(x) = k}, \ \  k \in \mathbb{C}
+ c \in \mathbf{M} \iff \mathbb{R}(lim_{x \to \infty}{z_c(x)}) \leq \mathbb{R}(k) \land \mathbb{I}(lim_{x \to \infty}{z_c(x) k})  \leq  k\ \  k \in \mathbb{C}
 ``` 
