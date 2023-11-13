@@ -397,12 +397,6 @@ int main()
     recursion(grid, x_bounds, y_bounds);
     Image image = toImage(grid);
     SaveImage("mb.png", image);
+
+    return 0;
 }
-// Mandelbrot m;
-// m.render(
-//     -1.5, 0.5,
-//     -1.0, 1.0,
-//     100, 1000,
-//     1920, 1080);
-// Image image = m.toImage();
-// SaveImage("mb.png", image);
