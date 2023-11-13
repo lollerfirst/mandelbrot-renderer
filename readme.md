@@ -32,3 +32,6 @@ recursively subdivide the plane into quadrants, find the first quadrant with poi
 neighboring quadrants with which the current quadrant has active neighboring points (active means in the Mendelbrot Set).
 Also, this imply that at the end we should also have understood the neighboring points for the super-quadrant comprising all 4 quadrants of the subdivision,
 which will be returned to the previous recursion step.
+
+# Example Image
+![](mb.png)
