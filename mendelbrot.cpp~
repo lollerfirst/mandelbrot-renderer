@@ -1,0 +1,114 @@
+#include <boost/multi_array.hpp>
+#include <omp.h>
+#include <iostream>
+#include <complex>
+#include <utility>
+#include <algorithm>
+
+#define THRESHOLD (512UL*512UL)
+
+struct collision_t
+{
+  unsigned bool active;
+  bool D[4]; // E-S-W-N
+};
+typedef std::pair<std::size_t, std::size_t> bounds_t;
+
+collision_t recursion(boost::multi_array<int, 2>& grid, bounds_t x_bounds, bounds_t y_bounds)
+{
+  // Check if bounds are above base_grid limit
+  if ((x_bounds.second - x_bounds.first + 1) * (y_bounds.second - y_bounds.first + 1) < THRESHOLD)
+  {
+    return mendelbrot(grid, x_bounds, y_bounds);
+  }
+
+  std::array<std::pair<bounds_t, int>, 4> quadrants;
+
+  for (int i=0; i<4; ++i)
+  {
+    auto& q = quadrants[i].first;
+    
+    switch (i)
+      {
+      case 0:
+    q.first = {x_bounds.first, (x_bounds.first+x_bounds.second)>>1};
+    q.second = {y_bounds.first, (y_bounds.first+y_bounds.second)>>1};
+    break;
+    
+      case 1:
+    q.first = {((x_bounds.first+x_bounds.second)>>1)+1, x_bounds.second};
+    q.second = {y_bounds.first, (y_bounds.first+y_bounds.second)>>1};
+    break;
+    
+      case 2:
+    q.first = {((x_bounds.first+x_bounds.second)>>1)+1, x_bounds.second};
+    q.second = {((y_bounds.first+y_bounds.second) >> 1)+1, y_bounds.second};
+    break;
+    
+      case 3:
+    q.first = {x_bounds.first, (x_bounds.first+x_bounds.second)>>1};
+    q.second = {((y_bounds.first+y_bounds.second) >> 1)+1, y_bounds.second};
+      default:
+      }
+  }
+
+  collision_t b0, b1, b2, b3;
+  collisiont_t r;
+  bool b2_calcd = 0;
+  bool b3_calcd = 0;
+  memset(&r, 0, sizeof(r));
+
+  // Look for a quadrant that is active
+  for (int i=0; i<4; ++i)
+    {
+      b0 = recursion(grid, quadrants[i].first.first, quadrants[i].first.second);
+      if (b0.active)
+	{
+	  r.D[(2+i) & 3] |= b0.D[(2+i) & 3];
+	  r.D[(3+i) & 3] |= b0.D[(3+i) & 3];
+	  
+	  if (b0.D[i]) // LOOK RIGHT + i
+	    {
+	      b1 = recursion(grid, quadrants[(i+1)&3].first.first, quadrants[(i+1)&3].first.second);
+	      r.D[(3+i) & 3] |= b1.D[(3+i)&3];
+	      r.D[i] |= b1.D[i];
+
+	      if (b1.D[(i+1)&3]) // LOOK DOWN + i
+		{
+		  b2 = recursion(grid, quadrants[(i+2)&3].first.first, quadrants[(i+2)&3].first.second);
+		  b2_calcd = true;
+		  r.D[i] |= b2.D[i]; // E + i
+		  r.D[(i+1) & 3] |= b2.D[(i+1) & 3]; // S + i
+
+		  if (b2.D[(i+3) & 3])
+		    {
+		      b3 = recursion(grid, quadrants[(i+3)&3].first.first, quadrants[(i+3)&3].first.second);
+		      b3_calcd = true;
+
+		      r.D[(i+1)&3] |= b3.D[(i+1)&3]; // S + i
+		      r.D[(i+2) & 3] |= b3.D[(i+2) & 3]; // W + i
+		      
+		    }
+		}
+	    }
+
+	  if (b0.D[(i+1)&3] && !b3_calcd) // LOOK DOWN + i IF NOT YET CALCULATED
+	    {
+	      b3 = recursion(grid, quadrants[(i+3)&3].first.first, quadrants[(i+3)&3].first.second);
+	      r.D[(i+1)&3] |= b3.D[(i+1)&3]; // S + i
+	      r.D[(i+2) & 3] |= b3.D[(i+2) & 3]; // W + i
+
+	      if (b3.D[i] && !b2_calcd) // LOOK RIGHT + i IF NOT YET CALCULATED (b2)
+		{
+		  b2 = recursion(grid, quadrants[(i+2)&3].first.first, quadrants[(i+2)&3].first.second);
+		  r.D[i] |= b2.D[i]; // E + i
+		  r.D[(i+1) & 3] |= b2.D[(i+1) & 3]; // S + i
+		}
+	    }
+	  
+	  break; // exit the for loop
+	}
+    }
+  
+  return r;
+}
