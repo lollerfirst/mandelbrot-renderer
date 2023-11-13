@@ -6,4 +6,5 @@ A point belongs to the Mendelbrot set if the series
 ```math
   z(n) = \begin{cases} 0, & \text{if } n-1 = 0\\z(n-1)^2 + c, &\text{if } n-1 > 0\end{cases}
 ```
-$$ c \belong \mathbf{M} \iff lim_{x \to \infty}{} $$ 
+converges.
+That is $$ c \belong \mathbf{M} \iff lim_{x \to \infty}{z(x)} = k}, & k \belong \mathbb{C} $$ 
