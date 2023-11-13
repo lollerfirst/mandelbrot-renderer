@@ -1,6 +1,5 @@
 #include <png.h>
-#include <string>
-#include <stdlib.h>
+#include <string.h>
 #include <iostream>
 #include <complex>
 #include <cmath>
@@ -9,8 +8,9 @@
 #include <utility>
 #include <algorithm>
 #include <array>
+#include <format>
 
-#define THRESHOLD (512UL * 512UL)
+#define THRESHOLD (64UL * 64UL)
 
 struct collision_t
 {
@@ -40,6 +40,7 @@ std::complex<double> scale(grid_t &grid, int x, int y)
 collision_t mendelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 {
     collision_t col;
+#pragma omp parallel for shared(grid, col)
     for (int y = y_bounds.first; y <= y_bounds.second; y++)
     {
     	int it;
@@ -390,6 +391,9 @@ int main()
     int width = 1920, height = 1080;
     grid_t grid = grid_t(boost::extents[width][height]);
     bounds_t x_bounds(0, width - 1), y_bounds(0, height - 1);
+
+    std::count << std::format("Image size: {} x {}\n Tile size: {}\n, omp threads = {}", width, height, THRESHOLD, omp_get_num_threads());
+    
     recursion(grid, x_bounds, y_bounds);
     Image image = toImage(grid);
     SaveImage("mb.png", image);
