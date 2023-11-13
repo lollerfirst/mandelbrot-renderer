@@ -22,7 +22,7 @@ typedef std::pair<std::size_t, std::size_t> bounds_t;
 typedef boost::multi_array<float, 2> grid_t;
 
 static double rmin = -1.5;
-static double rmax = 1.0;
+static double rmax =  0.5;
 static double imin = -1.0;
 static double imax = 1.0;
 static float maxdist = 1000.0;
