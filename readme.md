@@ -27,7 +27,7 @@ By leveraging this fact we can choose a tight bound $B$ for the value of $z_c(n)
 
 ## Recursive quadrants subdivision and pruning
 
-A study from 1984 proves that there can't be isolated points that are in the _Mendelbrot Set_. By leveraging this fact we can
+A study from 1984 proves that there is always a path between 2 points in the _Mendelbrot Set_. By leveraging this fact we can
 recursively subdivide the plane into quadrants, find the first quadrant with points in the mendelbrot set and then calculate only the
 neighboring quadrants with which the current quadrant has active neighboring points (active means in the Mendelbrot Set).
 Also, this imply that at the end we should also have understood the neighboring points for the super-quadrant comprising all 4 quadrants of the subdivision,
