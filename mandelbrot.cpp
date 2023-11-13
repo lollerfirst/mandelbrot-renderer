@@ -21,19 +21,20 @@ struct collision_t
 typedef std::pair<std::size_t, std::size_t> bounds_t;
 typedef boost::multi_array<float, 2> grid_t;
 
-double rmin = -1.5;
-double rmax = 1.0;
-double imin = -1.0;
-double imax = 1.0;
-float maxdist = 1000.0;
-int maxit = 100;
+static double rmin = -1.5;
+static double rmax = 1.0;
+static double imin = -1.0;
+static double imax = 1.0;
+static float maxdist = 1000.0;
+static int maxit = 100;
+static char filepath[512] = "mb.png";
 
 std::complex<double> scale(grid_t &grid, int x, int y)
 {
     int width = grid.shape()[0];
     int height = grid.shape()[1];
     double r = rmin + (rmax - rmin) * (double(x) / double(width));
-    double i = imin + (imax - imin) * (double(y) / double(width));
+    double i = imin + (imax - imin) * (double(y) / double(height));
     return std::complex<double>(r, i);
 }
 
@@ -41,10 +42,10 @@ collision_t mendelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 {
     collision_t col;
 #pragma omp parallel for shared(grid, col)
-    for (int y = y_bounds.first; y <= y_bounds.second; y++)
+    for (std::size_t y = y_bounds.first; y <= y_bounds.second; y++)
     {
     	int it;
-        for (int x = x_bounds.first; x <= x_bounds.second; x++)
+        for (std::size_t x = x_bounds.first; x <= x_bounds.second; x++)
         {
             std::complex<double> c = scale(grid, x, y);
             std::complex<double> z = c;
@@ -269,7 +270,7 @@ void SaveImage(std::string filename, Image image)
 {
     int width = image.shape()[0];
     int height = image.shape()[1];
-    int channels = 3;
+    //int channels = 3;
     int bit_depth = 8;
     FILE *fp = fopen(filename.c_str(), "wb+");
     png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -324,33 +325,47 @@ Image toImage(grid_t grid)
 }
 
 void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &height) {
-    int opt;
-    while ((opt = getopt(argc, argv, "r:i:w:h:d:t:")) != -1) {
+  struct option long_options[] = {
+    {"output", required_argument, NULL, 'o'},
+    {"width", required_argument, NULL, 'w'},
+    {"height", required_argument, NULL, 'h'},
+    {"maxiter", required_argument, NULL, '1'},
+    {"rmin", required_argument, NULL, '2'},
+    {"rmax", required_argument, NULL, '3'},
+    {"imin", required_argument, NULL, '4'},
+    {"imax", required_argument, NULL, '5'},
+    {0, 0, 0, 0}
+  };
+
+  int opt;
+  int option_index = 0;
+  
+  while ((opt = getopt_long(argc, argv, "o:w:h:", long_options, &option_index)) != -1) {
         switch (opt) {
-        case 'r':
+        case '2':
             rmin = std::stod(optarg);
             break;
-        case 'i':
+        case '4':
             imin = std::stod(optarg);
             break;
-        case 'w':
+        case '3':
             rmax = std::stod(optarg);
             break;
-        case 'h':
+        case '5':
             imax = std::stod(optarg);
             break;
-        case 'd':
-            maxdist = std::stof(optarg);
-            break;
-        case 't':
+        case '1':
             maxit = std::stoi(optarg);
             break;
-        case 'W':
-            width = std::stoi(optarg);
+        case 'w':
+            width = std::stol(optarg);
             break;
-        case 'H':
-            height = std::stoi(optarg);
+        case 'h':
+            height = std::stol(optarg);
             break;
+	case 'o':
+	    strncpy(filepath, optarg, 511);
+	    break;
         default:
             std::cerr << "Usage: mandelbrot [-rmin <value>] [-rmax <value>] [-imin <value>] [-imax <value>] "
               << "[-maxdist <value>] [-maxit <value>] [-width <value>] [-height <value>]" << std::endl;
@@ -367,11 +382,11 @@ int main(int argc, char** argv)
     grid_t grid = grid_t(boost::extents[width][height]);
     bounds_t x_bounds(0, width - 1), y_bounds(0, height - 1);
 
-    std::cout << "Image size: "<< width <<" x " << height << "\nTile size: "<< THRESHOLD << "\nomp threads = " << omp_get_num_threads() << "\n";
+    std::cout << "Image size: "<< width <<" x " << height << "\nTile size: "<< THRESHOLD << "\nomp threads = " << omp_get_max_threads() << "\nOutput file: " << filepath << '\n';
     
     recursion(grid, x_bounds, y_bounds);
     Image image = toImage(grid);
-    SaveImage("mb.png", image);
+    SaveImage(filepath, image);
 
     return 0;
 }
