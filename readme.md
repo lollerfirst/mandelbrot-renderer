@@ -9,5 +9,5 @@ A point belongs to the Mendelbrot set if the series
 converges.
 That is if:
 ```math
- c \belong \mathbf{M} \iff lim_{x \to \infty}{z(x)} = k}, & k \belong \mathbb{C}
+ c \belong \mathbf{M} \iff lim_{x \to \infty}{z(x) = k}, & k \belong \mathbb{C}
 ``` 
