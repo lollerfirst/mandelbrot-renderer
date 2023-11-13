@@ -5,10 +5,10 @@
 #include <cmath>
 #include <boost/multi_array.hpp>
 #include <omp.h>
+#include <getopt.h>
 #include <utility>
 #include <algorithm>
 #include <array>
-#include <format>
 
 #define THRESHOLD (64UL * 64UL)
 
@@ -345,8 +345,8 @@ public:
     }
     Image toImage()
     {
-        size_t width = this->grid.shape()[0];
-        size_t height = this->grid.shape()[1];
+        std::size_t width = this->grid.shape()[0];
+        std::size_t height = this->grid.shape()[1];
         Image image = Image{boost::extents[width][height]};
         for (int y = 0; y < height; y++)
         {
@@ -367,12 +367,12 @@ public:
 
 Image toImage(grid_t grid)
 {
-    size_t width = grid.shape()[0];
-    size_t height = grid.shape()[1];
+    std::size_t width = grid.shape()[0];
+    std::size_t height = grid.shape()[1];
     Image image = Image{boost::extents[width][height]};
-    for (int y = 0; y < height; y++)
+    for (std::size_t y = 0; y < height; y++)
     {
-        for (int x = 0; x < width; x++)
+        for (std::size_t x = 0; x < width; x++)
         {
             auto h = grid[x][y] * 360.0;
             float r, g, b;
@@ -386,13 +386,51 @@ Image toImage(grid_t grid)
     return image;
 }
 
-int main()
+void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &height) {
+    int opt;
+    while ((opt = getopt(argc, argv, "r:i:w:h:d:t:")) != -1) {
+        switch (opt) {
+        case 'r':
+            rmin = std::stod(optarg);
+            break;
+        case 'i':
+            imin = std::stod(optarg);
+            break;
+        case 'w':
+            rmax = std::stod(optarg);
+            break;
+        case 'h':
+            imax = std::stod(optarg);
+            break;
+        case 'd':
+            maxdist = std::stof(optarg);
+            break;
+        case 't':
+            maxit = std::stoi(optarg);
+            break;
+        case 'W':
+            width = std::stoi(optarg);
+            break;
+        case 'H':
+            height = std::stoi(optarg);
+            break;
+        default:
+            std::cerr << "Usage: mandelbrot [-rmin <value>] [-rmax <value>] [-imin <value>] [-imax <value>] "
+              << "[-maxdist <value>] [-maxit <value>] [-width <value>] [-height <value>]" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+int main(int argc, char** argv)
 {
-    int width = 1920, height = 1080;
+    std::size_t width = 1920, height = 1080;
+    parse_arguments(argc, argv, width, height);
+ 
     grid_t grid = grid_t(boost::extents[width][height]);
     bounds_t x_bounds(0, width - 1), y_bounds(0, height - 1);
 
-    std::count << std::format("Image size: {} x {}\n Tile size: {}\n, omp threads = {}", width, height, THRESHOLD, omp_get_num_threads());
+    std::cout << "Image size: "<< width <<" x " << height << "\nTile size: "<< THRESHOLD << "\nomp threads = " << omp_get_num_threads() << "\n";
     
     recursion(grid, x_bounds, y_bounds);
     Image image = toImage(grid);
