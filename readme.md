@@ -1,4 +1,4 @@
-# Mendelbrot Rendered
+# Mendelbrot Renderer
 
 This program creates a blank canvas and draws the points which belong to the _MendelBrot Set_ $\mathbf{M}$.
 Specifically, a point $\mathbf{P}: (x, y)$ translates to a complex value of $c = x + iy$, without considering the scaling.
