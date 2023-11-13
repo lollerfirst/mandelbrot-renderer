@@ -302,69 +302,6 @@ void SaveImage(std::string filename, Image image)
     free(row_pointers);
 }
 
-class Mandelbrot
-{
-    using MandelGrid = boost::multi_array<float, 2>;
-    MandelGrid grid;
-    static float iterate(std::complex<double> c, long maxit = 100, double maxd = 1000)
-    {
-        auto z = c;
-        long it;
-        for (it = 0; it < maxit; it++)
-        {
-            z = z * z + c;
-            if (std::abs(z) > maxd)
-                break;
-        }
-        float di = float(it);
-        if (it < maxit)
-        {
-            di -= std::log2(std::log(std::abs(z)) / std::log(maxd));
-        }
-        return di / float(maxit);
-    }
-
-public:
-    void render(
-        double rmin, double rmax,
-        double imin, double imax,
-        long maxit, double maxdist,
-        int width, int height)
-    {
-        this->grid.resize(boost::extents[width][height]);
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                auto c = std::complex<double>(
-                    rmin + (rmax - rmin) * (double(x) / double(width)),
-                    imin + (imax - imin) * (double(y) / double(height)));
-                this->grid[x][y] = iterate(c, maxit, maxdist);
-            }
-        }
-    }
-    Image toImage()
-    {
-        std::size_t width = this->grid.shape()[0];
-        std::size_t height = this->grid.shape()[1];
-        Image image = Image{boost::extents[width][height]};
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                auto h = this->grid[x][y] * 360.0;
-                float r, g, b;
-                HSVtoRGB(h, 1.0f, 1.0f, r, g, b);
-                image[x][y] = Pixel{
-                    int(255.0 * r),
-                    int(255.0 * g),
-                    int(255.0 * b)};
-            }
-        }
-        return image;
-    }
-};
-
 Image toImage(grid_t grid)
 {
     std::size_t width = grid.shape()[0];
