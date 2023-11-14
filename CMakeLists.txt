@@ -22,7 +22,7 @@ find_package(Boost REQUIRED)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${Boost_INCLUDE_DIRS})
 
-add_executable(mandelbrot mandelbrot.cpp)
+add_executable(mandelbrot mandelbrot.cpp color.cpp)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -fno-rtti -fno-exceptions")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")

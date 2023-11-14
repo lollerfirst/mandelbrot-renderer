@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <array>
 
+#include "color.h"
+
 #define THRESHOLD (64UL * 64UL)
 
 struct collision_t
@@ -24,7 +26,7 @@ typedef boost::multi_array<float, 2> grid_t;
 static double rmin = -1.5;
 static double rmax =  0.5;
 static double imin = -1.0;
-static double imax = 1.0;
+static double imax =  1.0;
 static float maxdist = 1000.0;
 static int maxit = 100;
 static char filepath[512] = "mb.png";
@@ -204,67 +206,8 @@ collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
     }
     return r;
 }
-/* ---- */
 
-struct Pixel
-{
-    int r, g, b;
-};
-using Image = boost::multi_array<Pixel, 2>;
-
-void HSVtoRGB(float fH, float fS, float fV, float &fR, float &fG, float &fB)
-{
-    float fC = fV * fS; // Chroma
-    float fHPrime = std::fmod(fH / 60.0, 6);
-    float fX = fC * (1 - std::fabs(std::fmod(fHPrime, 2) - 1));
-    float fM = fV - fC;
-
-    if (0 <= fHPrime && fHPrime < 1)
-    {
-        fR = fC;
-        fG = fX;
-        fB = 0;
-    }
-    else if (1 <= fHPrime && fHPrime < 2)
-    {
-        fR = fX;
-        fG = fC;
-        fB = 0;
-    }
-    else if (2 <= fHPrime && fHPrime < 3)
-    {
-        fR = 0;
-        fG = fC;
-        fB = fX;
-    }
-    else if (3 <= fHPrime && fHPrime < 4)
-    {
-        fR = 0;
-        fG = fX;
-        fB = fC;
-    }
-    else if (4 <= fHPrime && fHPrime < 5)
-    {
-        fR = fX;
-        fG = 0;
-        fB = fC;
-    }
-    else if (5 <= fHPrime && fHPrime < 6)
-    {
-        fR = fC;
-        fG = 0;
-        fB = fX;
-    }
-    else
-    {
-        fR = 0;
-        fG = 0;
-        fB = 0;
-    }
-    fR += fM;
-    fG += fM;
-    fB += fM;
-}
+using Image = boost::multi_array<Color, 2>;
 
 void SaveImage(std::string filename, Image image)
 {
@@ -315,7 +258,7 @@ Image toImage(grid_t grid)
             auto h = grid[x][y] * 360.0;
             float r, g, b;
             HSVtoRGB(h, 1.0f, 1.0f, r, g, b);
-            image[x][y] = Pixel{
+            image[x][y] = Color{
                 int(255.0 * r),
                 int(255.0 * g),
                 int(255.0 * b)};
@@ -376,7 +319,7 @@ void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &he
 
 int main(int argc, char** argv)
 {
-    std::size_t width = 1920, height = 1080;
+    std::size_t width = 2000, height = 2000;
     parse_arguments(argc, argv, width, height);
  
     grid_t grid = grid_t(boost::extents[width][height]);
