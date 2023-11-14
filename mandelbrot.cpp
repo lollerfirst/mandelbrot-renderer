@@ -11,7 +11,7 @@
 #include <array>
 #include <color.h>
 
-#define THRESHOLD (64UL * 64UL)
+#define THRESHOLD (32UL * 32UL)
 
 struct collision_t
 {
