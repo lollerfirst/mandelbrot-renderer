@@ -27,6 +27,11 @@ add_executable(mandelbrot mandelbrot.cpp color.cpp)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -fno-rtti -fno-exceptions")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(mandelbrot PRIVATE -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer)
+    target_link_options(mandelbrot PRIVATE -fsanitize=address -fsanitize=undefined)
+endif()
+
 if(APPLE)
     target_link_libraries(mandelbrot PRIVATE PNG::PNG)
 else()
