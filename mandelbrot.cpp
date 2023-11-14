@@ -9,8 +9,7 @@
 #include <utility>
 #include <algorithm>
 #include <array>
-
-#include "color.h"
+#include <color.h>
 
 #define THRESHOLD (64UL * 64UL)
 
@@ -95,7 +94,7 @@ collision_t mendelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
     return col;
 }
 
-collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
+collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds, int starting_quadrant = 0)
 {
     // Check if bounds are above base_grid limit
     if ((x_bounds.second - x_bounds.first + 1) * (y_bounds.second - y_bounds.first + 1) < THRESHOLD)
@@ -142,9 +141,10 @@ collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
     memset(&r, 0, sizeof(r));
 
     // Look for a quadrant that is active
-    for (int i = 0; i < 4; ++i)
+    for (int j = 0, i = starting_quadrant; j < 4; ++j, i = (i+1)&3)
     {
-        b[i] = recursion(grid, quadrants[i].first, quadrants[i].second);
+
+        b[i] = recursion(grid, quadrants[i].first, quadrants[i].second, i);
         b_calcd[i] = true;
 
         if (b[i].active)
@@ -155,21 +155,21 @@ collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 
             if (b[i].D[i] && !b_calcd[(i + 1) & 3]) // LOOK RIGHT + i
             {
-                b[(i + 1) & 3] = recursion(grid, quadrants[(i + 1) & 3].first, quadrants[(i + 1) & 3].second);
+	      b[(i + 1) & 3] = recursion(grid, quadrants[(i + 1) & 3].first, quadrants[(i + 1) & 3].second, i);
                 b_calcd[(i + 1) & 3] = true;
                 r.D[(3 + i) & 3] |= b[(i + 1) & 3].D[(3 + i) & 3];
                 r.D[i] |= b[(i + 1) & 3].D[i];
 
                 if (b[(i + 1) & 3].D[(i + 1) & 3] && !b_calcd[(i + 2) & 3]) // LOOK DOWN + i
                 {
-                    b[(i + 2) & 3] = recursion(grid, quadrants[(i + 2) & 3].first, quadrants[(i + 2) & 3].second);
+		  b[(i + 2) & 3] = recursion(grid, quadrants[(i + 2) & 3].first, quadrants[(i + 2) & 3].second, i);
                     b_calcd[(i + 2) & 3] = true;
                     r.D[i] |= b[(i + 2) & 3].D[i];                     // E + i
                     r.D[(i + 1) & 3] |= b[(i + 2) & 3].D[(i + 1) & 3]; // S + i
 
                     if (b[(i + 2) & 3].D[(i + 2) & 3] && !b_calcd[(i + 3) & 3])
                     {
-                        b[(i + 3) & 3] = recursion(grid, quadrants[(i + 3) & 3].first, quadrants[(i + 3) & 3].second);
+		      b[(i + 3) & 3] = recursion(grid, quadrants[(i + 3) & 3].first, quadrants[(i + 3) & 3].second, i);
                         b_calcd[(i + 3) & 3] = true;
 
                         r.D[(i + 1) & 3] |= b[(i + 3) & 3].D[(i + 1) & 3]; // S + i
@@ -180,19 +180,19 @@ collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 
             if (b[i].D[(i + 1) & 3] && !b_calcd[(i + 3) & 3]) // LOOK DOWN + i IF NOT YET CALCULATED
             {
-                b[(i + 3) & 3] = recursion(grid, quadrants[(i + 3) & 3].first, quadrants[(i + 3) & 3].second);
+	      b[(i + 3) & 3] = recursion(grid, quadrants[(i + 3) & 3].first, quadrants[(i + 3) & 3].second, i);
                 r.D[(i + 1) & 3] |= b[(i + 3) & 3].D[(i + 1) & 3]; // S + i
                 r.D[(i + 2) & 3] |= b[(i + 3) & 3].D[(i + 2) & 3]; // W + i
 
                 if (b[(i + 3) & 3].D[i] && !b_calcd[(i + 2) & 3]) // LOOK RIGHT + i IF NOT YET CALCULATED (b[(i+2)&3])
                 {
-                    b[(i + 2) & 3] = recursion(grid, quadrants[(i + 2) & 3].first, quadrants[(i + 2) & 3].second);
+		  b[(i + 2) & 3] = recursion(grid, quadrants[(i + 2) & 3].first, quadrants[(i + 2) & 3].second, i);
                     r.D[i] |= b[(i + 2) & 3].D[i];                     // E + i
                     r.D[(i + 1) & 3] |= b[(i + 2) & 3].D[(i + 1) & 3]; // S + i
 
                     if (b[(i + 2) & 3].D[(i + 3) & 3] && !b_calcd[(i + 1) & 3])
                     {
-                        b[(i + 1) & 3] = recursion(grid, quadrants[(i + 3) & 3].first, quadrants[(i + 3) & 3].second);
+		      b[(i + 1) & 3] = recursion(grid, quadrants[(i + 3) & 3].first, quadrants[(i + 3) & 3].second, i);
                         b_calcd[(i + 1) & 3] = true;
 
                         r.D[(i + 3) & 3] |= b[(i + 1) & 3].D[(i + 3) & 3]; // N + i

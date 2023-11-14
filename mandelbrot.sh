@@ -1,4 +1,4 @@
-time mandelbrot \
+time build/mandelbrot \
     -w 1500 \
     -h 1500 \
     --maxiter 500 \
