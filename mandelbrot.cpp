@@ -13,7 +13,7 @@
 
 #include <color.h>
 
-#define THRESHOLD (1024UL * 1024UL)
+#define THRESHOLD (32UL * 32UL)
 
 struct collision_t
 {
@@ -46,6 +46,8 @@ std::complex<double> scale(grid_t &grid, int x, int y)
 collision_t mendelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 {
     collision_t col;
+    memset(&col, 0, sizeof(collision_t));
+
 #pragma omp parallel for shared(grid, col)
     for (std::size_t y = y_bounds.first; y <= y_bounds.second; y++)
     {
