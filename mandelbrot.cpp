@@ -29,6 +29,7 @@ static double imax =  1.0;
 static float maxdist = 1000.0;
 static int maxit = 100;
 static char filepath[512] = "mb.png";
+static char palette[512] = "palette.csv";
 
 std::complex<double> scale(grid_t &grid, int x, int y)
 {
@@ -270,6 +271,7 @@ Image toImage(grid_t grid)
 void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &height) {
   struct option long_options[] = {
     {"output", required_argument, NULL, 'o'},
+    {"palette", required_argument, NULL, 'p'},
     {"width", required_argument, NULL, 'w'},
     {"height", required_argument, NULL, 'h'},
     {"maxiter", required_argument, NULL, '1'},
@@ -306,12 +308,15 @@ void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &he
         case 'h':
             height = std::stol(optarg);
             break;
-	case 'o':
-	    strncpy(filepath, optarg, 511);
-	    break;
+	    case 'o':
+	        strncpy(filepath, optarg, 511);
+	        break;
+        case 'p':
+	        strncpy(palette, optarg, 511);
+	        break;
         default:
             std::cerr << "Usage: mandelbrot [-rmin <value>] [-rmax <value>] [-imin <value>] [-imax <value>] "
-              << "[-maxdist <value>] [-maxit <value>] [-width <value>] [-height <value>]" << std::endl;
+              << "[-maxdist <value>] [-maxit <value>] [-width <value>] [-height <value>] [-output <path>] [-palette <path>]" << std::endl;
             exit(EXIT_FAILURE);
         }
     }
