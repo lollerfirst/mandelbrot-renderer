@@ -8,6 +8,17 @@
 
 #include "color.h"
 
+/// @brief Read a color palette from a CSV file. 
+/// Each row starts with a float designating the fractional
+/// range that color occupies: .5 is half the range, .25 a
+/// quarter etc. The rest of the lines represent values in 
+/// RGB ranging from 0 to 255.
+/// Example:
+/// 0.0, 0,255,0
+/// 0.5, 255,0,0
+/// 1.0, 0,0,255
+/// @param file_path 
+/// @return 
 bool CSVPalette::read(std::string file_path)
 {
     std::ifstream file(file_path);
@@ -101,7 +112,7 @@ float lerp(float x1, float x2, float d)
 /// @param fR 
 /// @param fG 
 /// @param fB 
-void HSVtoRGB(float fH, float fS, float fV, float &fR, float &fG, float &fB)
+void hsv_to_rgb(float fH, float fS, float fV, float &fR, float &fG, float &fB)
 {
     float fC = fV * fS; // Chroma
     float fHPrime = std::fmod(fH / 60.0, 6);
@@ -162,7 +173,7 @@ Color HSVPalette::get(float iter)
 {
     float r, g, b;
     float h = iter * 360.0;
-    HSVtoRGB(h, 1.0f, 1.0f, r, g, b);
+    hsv_to_rgb(h, 1.0f, 1.0f, r, g, b);
     return Color
     {
         int(255.0 * r),

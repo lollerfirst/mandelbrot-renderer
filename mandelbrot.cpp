@@ -319,14 +319,14 @@ int main(int argc, char** argv)
     CSVPalette csv = CSVPalette();
     if (csv.read(palettepath)) 
     {
-        image_t image = toImage(grid, csv);
-        savePNG(filepath, image);
+        image_t image = to_image(grid, csv);
+        save_png(filepath, image);
     }
     else
     {
         HSVPalette hsv = HSVPalette();
-        image_t image = toImage(grid, hsv);
-        savePNG(filepath, image);
+        image_t image = to_image(grid, hsv);
+        save_png(filepath, image);
     }
     return 0;
 }

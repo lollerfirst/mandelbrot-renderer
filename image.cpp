@@ -6,7 +6,7 @@
 /// @param grid 
 /// @param palette 
 /// @return 
-image_t toImage(grid_t grid, Palette &palette)
+image_t to_image(grid_t grid, Palette &palette)
 {
     std::size_t width = grid.shape()[0];
     std::size_t height = grid.shape()[1];
@@ -24,7 +24,7 @@ image_t toImage(grid_t grid, Palette &palette)
 /// @brief Save an image as PNG.
 /// @param filename The path to save the file as.
 /// @param image The image with color values.
-void savePNG(std::string filename, image_t image)
+void save_png(std::string filename, image_t image)
 {
     int width = image.shape()[0];
     int height = image.shape()[1];

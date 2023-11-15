@@ -42,4 +42,4 @@ public:
 };
 
 float lerp(float x1, float x2, float d);
-void HSVtoRGB(float fH, float fS, float fV, float &fR, float &fG, float &fB);
+void hsv_to_rgb(float fH, float fS, float fV, float &fR, float &fG, float &fB);
