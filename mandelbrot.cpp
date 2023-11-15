@@ -330,7 +330,15 @@ int main(int argc, char** argv)
     grid_t grid = grid_t(boost::extents[width][height]);
     bounds_t x_bounds(0, width - 1), y_bounds(0, height - 1);
 
-    std::cout << "Image size: "<< width <<" x " << height << "\nTile size: "<< THRESHOLD << "\nomp threads = " << omp_get_max_threads() << "\nOutput file: " << filepath << '\n';
+    std::cout << "Image size: "<< width <<" x " << height
+	      << "\nreal [min-max]: " << rmin << " - " << rmax
+	      << "\nimaginary [min-max]: " << imin << " - " << imax
+	      << "\nmax dist: " << maxdist
+	      << "\nmax iter: " << maxit
+	      << "\nTile size: "<< THRESHOLD
+	      << "\nomp threads = "
+	      << omp_get_max_threads()
+	      << "\nOutput file: " << filepath << '\n';
     
     recursion(grid, x_bounds, y_bounds);
     Image image = toImage(grid);
