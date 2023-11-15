@@ -105,65 +105,65 @@ float lerp(float x1, float x2, float d)
     return x1 + (x2 - x1) * d;
 }
 
-/// @brief 
-/// @param fH 
-/// @param fS 
-/// @param fV 
-/// @param fR 
-/// @param fG 
-/// @param fB 
-void hsv_to_rgb(float fH, float fS, float fV, float &fR, float &fG, float &fB)
+/// @brief Converts an RGB color to HSV.
+/// @param h Hue.
+/// @param s Saturation.
+/// @param v Value.
+/// @param r Red.
+/// @param g Green.
+/// @param b Blue.
+void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b)
 {
-    float fC = fV * fS; // Chroma
-    float fHPrime = std::fmod(fH / 60.0, 6);
-    float fX = fC * (1 - std::fabs(std::fmod(fHPrime, 2) - 1));
-    float fM = fV - fC;
+    float c = v * s; // Chroma
+    float hprime = std::fmod(h / 60.0, 6);
+    float x = c * (1 - std::fabs(std::fmod(hprime, 2) - 1));
+    float m = v - c;
 
-    if (0 <= fHPrime && fHPrime < 1)
+    if (0 <= hprime && hprime < 1)
     {
-        fR = fC;
-        fG = fX;
-        fB = 0;
+        r = c;
+        g = x;
+        b = 0;
     }
-    else if (1 <= fHPrime && fHPrime < 2)
+    else if (1 <= hprime && hprime < 2)
     {
-        fR = fX;
-        fG = fC;
-        fB = 0;
+        r = x;
+        g = c;
+        b = 0;
     }
-    else if (2 <= fHPrime && fHPrime < 3)
+    else if (2 <= hprime && hprime < 3)
     {
-        fR = 0;
-        fG = fC;
-        fB = fX;
+        r = 0;
+        g = c;
+        b = x;
     }
-    else if (3 <= fHPrime && fHPrime < 4)
+    else if (3 <= hprime && hprime < 4)
     {
-        fR = 0;
-        fG = fX;
-        fB = fC;
+        r = 0;
+        g = x;
+        b = c;
     }
-    else if (4 <= fHPrime && fHPrime < 5)
+    else if (4 <= hprime && hprime < 5)
     {
-        fR = fX;
-        fG = 0;
-        fB = fC;
+        r = x;
+        g = 0;
+        b = c;
     }
-    else if (5 <= fHPrime && fHPrime < 6)
+    else if (5 <= hprime && hprime < 6)
     {
-        fR = fC;
-        fG = 0;
-        fB = fX;
+        r = c;
+        g = 0;
+        b = x;
     }
     else
     {
-        fR = 0;
-        fG = 0;
-        fB = 0;
+        r = 0;
+        g = 0;
+        b = 0;
     }
-    fR += fM;
-    fG += fM;
-    fB += fM;
+    r += m;
+    g += m;
+    b += m;
 }
 
 /// @brief Maps iterations evenly across HSV spectrum.
