@@ -286,7 +286,10 @@ void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &he
   int option_index = 0;
   
   while ((opt = getopt_long(argc, argv, "o:w:h:", long_options, &option_index)) != -1) {
-        switch (opt) {
+    try
+    {
+        switch (opt)
+        {
         case '2':
             rmin = std::stod(optarg);
             break;
@@ -315,8 +318,17 @@ void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &he
 	        strncpy(palette, optarg, 511);
 	        break;
         default:
-            std::cerr << "Usage: mandelbrot [-rmin <value>] [-rmax <value>] [-imin <value>] [-imax <value>] "
-              << "[-maxdist <value>] [-maxit <value>] [-width <value>] [-height <value>] [-output <path>] [-palette <path>]" << std::endl;
+            std::cerr << "Usage: mandelbrot [--rmin=<value>] [--rmax=<value>] [--imin=<value>] [--imax=<value>] "
+              << "[--maxdist=<value>] [--maxit=<value>] [--width=<value>] [--height=<value>] [--output=<path>] [--palette=<path>]" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        }
+        catch (std::invalid_argument const& ex)
+        {
+            std::cerr << "Invalid argument!\n";
+            std::cerr << "Usage: mandelbrot [--rmin=<value>] [--rmax=<value>] [--imin=<value>] [--imax=<value>] "
+              << "[--maxdist=<value>] [--maxit=<value>] [--width=<value>] [--height=<value>] [--output=<path>] [--palette=<path>]" << std::endl;
             exit(EXIT_FAILURE);
         }
     }

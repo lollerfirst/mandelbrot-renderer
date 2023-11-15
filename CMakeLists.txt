@@ -24,7 +24,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(mandelbrot mandelbrot.cpp color.cpp)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -fno-rtti -fno-exceptions")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -fno-rtti")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
