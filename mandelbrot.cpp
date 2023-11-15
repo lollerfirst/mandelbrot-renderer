@@ -310,7 +310,11 @@ int main(int argc, char** argv)
     std::size_t width = 2000, height = 2000;
     parse_arguments(argc, argv, width, height);
     std::cout << "Image size: " << width << "x" << height 
-              << "\nTile size: " << THRESHOLD 
+              << "\nTile size: " << THRESHOLD
+              << "\nreal range: " << rmin << " - " << rmax
+              << "\nimaginary range: " << imin << " - " << imax
+              << "\nmax iter: " << maxit
+              << "\nmax dist: " << maxdist
               << "\nomp threads = " << omp_get_max_threads() 
               << "\nOutput file: " << filepath << '\n'; 
     grid_t grid = grid_t(boost::extents[width][height]);
