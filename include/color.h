@@ -22,12 +22,23 @@ Example:
 */
 class Palette 
 {
-    std::vector<std::pair<float, Color> > colors;
-    void read(std::string file_path);
 public:
-    Palette(std::string path);
-    Color get(float index);
+    virtual Color get(float index) = 0;
+};
+
+class CSVPalette : public Palette
+{
+    std::vector<std::pair<float, Color> > colors;
+public:
+    bool read(std::string file_path);
+    Color get(float index) override;
     void print();
+};
+
+class HSVPalette : public Palette
+{
+public:
+    Color get(float index) override;
 };
 
 float lerp(float x1, float x2, float d);
