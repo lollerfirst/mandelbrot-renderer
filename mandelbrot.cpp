@@ -1,17 +1,19 @@
-#include <png.h>
-#include <string.h>
-#include <iostream>
-#include <complex>
-#include <cmath>
-#include <boost/multi_array.hpp>
-#include <omp.h>
-#include <getopt.h>
-#include <utility>
 #include <algorithm>
 #include <array>
+#include <boost/multi_array.hpp>
+#include <cmath>
+#include <complex>
+#include <functional>
+#include <iostream>
+#include <getopt.h>
+#include <omp.h>
+#include <png.h>
+#include <string.h>
+#include <utility>
+
 #include <color.h>
 
-#define THRESHOLD (32UL * 32UL)
+#define THRESHOLD (1024UL * 1024UL)
 
 struct collision_t
 {
@@ -21,6 +23,7 @@ struct collision_t
 
 typedef std::pair<std::size_t, std::size_t> bounds_t;
 typedef boost::multi_array<float, 2> grid_t;
+typedef boost::multi_array<Color, 2> image_t;
 
 static double rmin = -1.5;
 static double rmax =  0.5;
@@ -29,7 +32,7 @@ static double imax =  1.0;
 static float maxdist = 1000.0;
 static int maxit = 100;
 static char filepath[512] = "mb.png";
-static char palette[512] = "palette.csv";
+static char palettepath[512] = "palette.csv";
 
 std::complex<double> scale(grid_t &grid, int x, int y)
 {
@@ -208,9 +211,7 @@ collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds, int st
     return r;
 }
 
-using Image = boost::multi_array<Color, 2>;
-
-void SaveImage(std::string filename, Image image)
+void SaveImage(std::string filename, image_t image)
 {
     int width = image.shape()[0];
     int height = image.shape()[1];
@@ -247,26 +248,21 @@ void SaveImage(std::string filename, Image image)
     free(row_pointers);
 }
 
-Image toImage(grid_t grid)
+image_t toImage(grid_t grid, Palette &palette)
 {
     std::size_t width = grid.shape()[0];
     std::size_t height = grid.shape()[1];
-    Image image = Image{boost::extents[width][height]};
+    image_t image = image_t{boost::extents[width][height]};
     for (std::size_t y = 0; y < height; y++)
     {
         for (std::size_t x = 0; x < width; x++)
         {
-            auto h = grid[x][y] * 360.0;
-            float r, g, b;
-            HSVtoRGB(h, 1.0f, 1.0f, r, g, b);
-            image[x][y] = Color{
-                int(255.0 * r),
-                int(255.0 * g),
-                int(255.0 * b)};
+            image[x][y] = palette.get(grid[x][y]);
         }
     }
     return image;
 }
+
 
 void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &height) {
   struct option long_options[] = {
@@ -312,7 +308,7 @@ void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &he
 	        strncpy(filepath, optarg, 511);
 	        break;
         case 'p':
-	        strncpy(palette, optarg, 511);
+	        strncpy(palettepath, optarg, 511);
 	        break;
         default:
             std::cerr << "Usage: mandelbrot [-rmin <value>] [-rmax <value>] [-imin <value>] [-imax <value>] "
@@ -326,23 +322,24 @@ int main(int argc, char** argv)
 {
     std::size_t width = 2000, height = 2000;
     parse_arguments(argc, argv, width, height);
- 
+    std::cout << "Image size: " << width << "x" << height 
+              << "\nTile size: " << THRESHOLD 
+              << "\nomp threads = " << omp_get_max_threads() 
+              << "\nOutput file: " << filepath << '\n'; 
     grid_t grid = grid_t(boost::extents[width][height]);
     bounds_t x_bounds(0, width - 1), y_bounds(0, height - 1);
-
-    std::cout << "Image size: "<< width <<" x " << height
-	      << "\nreal [min-max]: " << rmin << " - " << rmax
-	      << "\nimaginary [min-max]: " << imin << " - " << imax
-	      << "\nmax dist: " << maxdist
-	      << "\nmax iter: " << maxit
-	      << "\nTile size: "<< THRESHOLD
-	      << "\nomp threads = "
-	      << omp_get_max_threads()
-	      << "\nOutput file: " << filepath << '\n';
-    
     recursion(grid, x_bounds, y_bounds);
-    Image image = toImage(grid);
-    SaveImage(filepath, image);
-
+    CSVPalette csv = CSVPalette();
+    if (csv.read(palettepath)) 
+    {
+        image_t image = toImage(grid, csv);
+        SaveImage(filepath, image);
+    }
+    else
+    {
+        HSVPalette hsv = HSVPalette();
+        image_t image = toImage(grid, hsv);
+        SaveImage(filepath, image);
+    }
     return 0;
 }

@@ -8,18 +8,13 @@
 
 #include "color.h"
 
-Palette::Palette(std::string path)
-{
-    read(path);
-}
-
-void Palette::read(std::string file_path)
+bool CSVPalette::read(std::string file_path)
 {
     std::ifstream file(file_path);
-
-    if (!file.is_open()) {
+    if (!file.is_open()) 
+    {
         std::cerr << "Cannot read palette: " << file_path << std::endl;
-        return;
+        return false;
     }
     std::string line;
     while (std::getline(file, line)) {
@@ -41,9 +36,10 @@ void Palette::read(std::string file_path)
         this->colors.push_back(color);
     }
     file.close();
+    return true;
 }
 
-void Palette::print()
+void CSVPalette::print()
 {
     for (const auto& color : this->colors) {
         std::cout << color.first << "\t"
@@ -53,7 +49,10 @@ void Palette::print()
     }
 }
 
-Color Palette::get(float index) 
+/// @brief 
+/// @param index 
+/// @return 
+Color CSVPalette::get(float index) 
 {
     Color c1, c2;
     float i1, i2;
@@ -95,6 +94,13 @@ float lerp(float x1, float x2, float d)
     return x1 + (x2 - x1) * d;
 }
 
+/// @brief 
+/// @param fH 
+/// @param fS 
+/// @param fV 
+/// @param fR 
+/// @param fG 
+/// @param fB 
 void HSVtoRGB(float fH, float fS, float fV, float &fR, float &fG, float &fB)
 {
     float fC = fV * fS; // Chroma
@@ -147,4 +153,20 @@ void HSVtoRGB(float fH, float fS, float fV, float &fR, float &fG, float &fB)
     fR += fM;
     fG += fM;
     fB += fM;
+}
+
+/// @brief Maps iterations evenly across HSV spectrum.
+/// @param iter Mandelbrot iteration count.
+/// @return HSV color.
+Color HSVPalette::get(float iter)
+{
+    float r, g, b;
+    float h = iter * 360.0;
+    HSVtoRGB(h, 1.0f, 1.0f, r, g, b);
+    return Color
+    {
+        int(255.0 * r),
+        int(255.0 * g),
+        int(255.0 * b)
+    };
 }
