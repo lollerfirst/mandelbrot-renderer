@@ -2,7 +2,7 @@
 time build/mandelbrot \
     -w 1500 \
     -h 1500 \
-    --palette palette3.csv \
+    --palette palettes/palette3.csv \
     --maxiter 500 \
     --rmin -0.5811427303467864211317884580 \
     --rmax -0.5811427303466769052682115420 \

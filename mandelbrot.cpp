@@ -7,11 +7,11 @@
 #include <iostream>
 #include <getopt.h>
 #include <omp.h>
-#include <png.h>
 #include <string.h>
 #include <utility>
 
 #include <color.h>
+#include <image.h>
 
 #define THRESHOLD (32UL * 32UL)
 
@@ -23,7 +23,6 @@ struct collision_t
 
 typedef std::pair<std::size_t, std::size_t> bounds_t;
 typedef boost::multi_array<float, 2> grid_t;
-typedef boost::multi_array<Color, 2> image_t;
 
 static double rmin = -1.5;
 static double rmax =  0.5;
@@ -34,6 +33,13 @@ static int maxit = 100;
 static char filepath[512] = "mb.png";
 static char palettepath[512] = "palette.csv";
 
+/// @brief Calculates the complex number corresponding to a
+/// position on a discrete grid, using the global ranges
+/// [rmin..rmax] and [imin..imax] to render.
+/// @param grid A discrete grid matching image resolution.
+/// @param x The axis mapped to the real number range.
+/// @param y The axis mapped to the imaginary number range.
+/// @return The complex number corresponding to the position.
 std::complex<double> scale(grid_t &grid, int x, int y)
 {
     int width = grid.shape()[0];
@@ -43,7 +49,15 @@ std::complex<double> scale(grid_t &grid, int x, int y)
     return std::complex<double>(r, i);
 }
 
-collision_t mendelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
+/// @brief Iterates a sub-range of complex numbers on a grid and 
+/// saves the iteration count, with fractional scaling by distance,
+/// needed for escape outside of the bounds of that distance.
+/// @param grid Grid of complex numbers.
+/// @param x_bounds Sub-range on real axis.
+/// @param y_bounds Sub-range on imaginary axis.
+/// @return Information about borders of this sub-range overlapping 
+/// the Mandelbrot set, for pruning of regions.
+collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 {
     collision_t col;
     memset(&col, 0, sizeof(collision_t));
@@ -100,12 +114,19 @@ collision_t mendelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
     return col;
 }
 
+/// @brief Prunes regions of the complex number space to render and 
+/// calls mandelbrot function to calculate iteration counts.
+/// @param grid 
+/// @param x_bounds 
+/// @param y_bounds 
+/// @param starting_quadrant 
+/// @return 
 collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds, int starting_quadrant = 0)
 {
     // Check if bounds are above base_grid limit
     if ((x_bounds.second - x_bounds.first + 1) * (y_bounds.second - y_bounds.first + 1) < THRESHOLD)
     {
-        return mendelbrot(grid, x_bounds, y_bounds);
+        return mandelbrot(grid, x_bounds, y_bounds);
     }
     std::array<std::pair<bounds_t, bounds_t>, 4> quadrants;
 
@@ -213,59 +234,11 @@ collision_t recursion(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds, int st
     return r;
 }
 
-void SaveImage(std::string filename, image_t image)
-{
-    int width = image.shape()[0];
-    int height = image.shape()[1];
-    //int channels = 3;
-    int bit_depth = 8;
-    FILE *fp = fopen(filename.c_str(), "wb+");
-    png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    png_init_io(png, fp);
-    png_infop info = png_create_info_struct(png);
-    png_set_IHDR(
-        png, info, width, height, bit_depth, PNG_COLOR_TYPE_RGB,
-        PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-    png_bytep *row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * height);
-    for (int y = 0; y < height; y++)
-    {
-        row_pointers[y] = (png_byte *)malloc(png_get_rowbytes(png, info));
-        for (int x = 0; x < width; x++)
-        {
-            auto px = &(row_pointers[y][x * 3]);
-            px[0] = image[x][y].r;
-            px[1] = image[x][y].g;
-            px[2] = image[x][y].b;
-        }
-    }
-    png_write_info(png, info);
-    png_write_image(png, row_pointers);
-    png_write_end(png, NULL);
-    fclose(fp);
-    for (int y = 0; y < height; y++)
-    {
-        free(row_pointers[y]);
-    }
-    png_destroy_write_struct(&png, &info);
-    free(row_pointers);
-}
-
-image_t toImage(grid_t grid, Palette &palette)
-{
-    std::size_t width = grid.shape()[0];
-    std::size_t height = grid.shape()[1];
-    image_t image = image_t{boost::extents[width][height]};
-    for (std::size_t y = 0; y < height; y++)
-    {
-        for (std::size_t x = 0; x < width; x++)
-        {
-            image[x][y] = palette.get(grid[x][y]);
-        }
-    }
-    return image;
-}
-
-
+/// @brief Parse command line arguments and set globals and references as appropriate.
+/// @param argc 
+/// @param argv 
+/// @param width 
+/// @param height 
 void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &height) {
   struct option long_options[] = {
     {"output", required_argument, NULL, 'o'},
@@ -347,13 +320,13 @@ int main(int argc, char** argv)
     if (csv.read(palettepath)) 
     {
         image_t image = toImage(grid, csv);
-        SaveImage(filepath, image);
+        savePNG(filepath, image);
     }
     else
     {
         HSVPalette hsv = HSVPalette();
         image_t image = toImage(grid, hsv);
-        SaveImage(filepath, image);
+        savePNG(filepath, image);
     }
     return 0;
 }
