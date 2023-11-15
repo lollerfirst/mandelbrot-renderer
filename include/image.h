@@ -1,3 +1,4 @@
+#pragma once
 #include <boost/multi_array.hpp>
 #include <color.h>
 
