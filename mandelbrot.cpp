@@ -62,7 +62,7 @@ std::complex<double> scale(grid_t &grid, int x, int y)
 /// @param y_bounds Sub-range on imaginary axis.
 /// @return Information about borders of this sub-range overlapping
 /// the Mandelbrot set, for pruning of regions.
-collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
+collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds, bool fold=false)
 {
     collision_t col;
     memset(&col, 0, sizeof(collision_t));
@@ -82,6 +82,10 @@ collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
                 {
                     break;
                 }
+                if (fold && it == int(maxit / 2))
+                {
+                    c += z;
+                }
             }
             float di = float(it);
             // Point is in Mandelbrot set.
@@ -94,7 +98,7 @@ collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
                 else if (x == x_bounds.first)
                 {
                     col.D[2] = true;
-                }
+                }                
             }
             else
             {

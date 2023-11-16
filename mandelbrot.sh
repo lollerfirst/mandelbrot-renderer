@@ -29,3 +29,27 @@ time build/mandelbrot \
 # MacBookPro12,1 (8GB) (Tile size: 1024)        52s
 time ./mandelbrot --rmin -1.28 --rmax -1.23 --imin 0.01 --imax 0.06
 
+time build/mandelbrot \
+    -w 2000 \
+    -h 2000 \
+    --palette palettes/palette4.csv \
+    --maxiter 395 \
+    --rmin -0.16235887074391820137 \
+    --rmax -0.16235867460984729321 \
+    --imin 1.04103777600209870816 \
+    --imax 1.04103797213616961632 \
+    -o mandelbrot.png
+
+time build/mandelbrot \
+    -w 1500 \
+    -h 1500 \
+    --palette palettes/palette4.csv \
+    --maxiter 625 \
+    --rmin -0.28333688047900795861 \
+    --rmax -0.28256454127654433377 \
+    --imin -0.62946195193380117343 \
+    --imax -0.62868961273133754859 \
+    -o mandelbrot.png
+
+
+
