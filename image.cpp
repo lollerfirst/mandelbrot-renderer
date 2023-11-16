@@ -15,7 +15,8 @@ image_t to_image(grid_t grid, Palette &palette)
     {
         for (std::size_t x = 0; x < width; x++)
         {
-            image[x][y] = palette.get(grid[x][y]);
+            float index = (grid[x][y] - itmin) / (itmax - itmin);
+            image[x][y] = palette.get(index);
         }
     }
     return image;
