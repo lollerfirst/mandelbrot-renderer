@@ -8,8 +8,8 @@
 /// @return 
 image_t to_image(grid_t grid, Palette &palette)
 {
-    std::size_t width = grid.width;
-    std::size_t height = grid.height;
+    std::size_t width = grid.width();
+    std::size_t height = grid.height();
     image_t image = image_t{boost::extents[width][height]};
     for (std::size_t y = 0; y < height; y++)
     {

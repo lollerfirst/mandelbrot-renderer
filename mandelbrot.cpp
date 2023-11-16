@@ -30,11 +30,8 @@ MandelGrid::MandelGrid(
     double imin, double imax,
     long maxit, double maxdist,
     bool do_folding) : 
-    grid(boost::multi_array<float, 2>{boost::extents[width][height]}),
     itmin(std::numeric_limits<float>::max())
 {
-    this->width = width;
-    this->height = height;
     this->rmin = rmin;
     this->rmax = rmax;
     this->imin = imin;
@@ -42,10 +39,39 @@ MandelGrid::MandelGrid(
     this->maxit = maxit;
     this->maxdist = maxdist;
     this->do_folding = do_folding;
+    this->grid.resize(boost::extents[width][height]);
 }
 
-/// @brief Get a row of the grid, further indexable by y, 
-/// so as to support access by [x][y].
+/// @brief Set width of grid.
+/// @param width New grid width.
+void MandelGrid::width(std::size_t width)
+{
+    this->grid.resize(boost::extents[width][grid.shape()[1]]);
+}
+
+/// @brief Get width of grid.
+/// @return Grid width.
+std::size_t MandelGrid::width()
+{
+    return this->grid.shape()[0];
+}
+
+/// @brief Set height of grid.
+/// @param height New grid height.
+void MandelGrid::height(std::size_t height)
+{
+    this->grid.resize(boost::extents[grid.shape()[0]][height]);
+}
+
+/// @brief Get height of grid.
+/// @return Grid height.
+std::size_t MandelGrid::height()
+{
+    return this->grid.shape()[1];
+}
+
+/// @brief Get a row of the grid, further indexable 
+/// by y, so as to support access with [x][y].
 /// @param x The number of the row.
 /// @return A row in the grid.
 boost::detail::multi_array::sub_array<float, 1UL> 
@@ -67,10 +93,8 @@ static char palettepath[512] = "palette.csv";
 /// @return The complex number corresponding to the position.
 std::complex<double> scale(grid_t &g, int x, int y)
 {
-    int width = g.width;
-    int height = g.height;
-    double r = g.rmin + (g.rmax - g.rmin) * (double(x) / double(width));
-    double i = g.imin + (g.imax - g.imin) * (double(height - y) / double(height));
+    double r = g.rmin + (g.rmax - g.rmin) * (double(x) / double(g.width()));
+    double i = g.imin + (g.imax - g.imin) * (double(g.height() - y) / double(g.height()));
     return std::complex<double>(r, i);
 }
 
@@ -351,10 +375,10 @@ void parse_arguments(int argc, char *argv[], grid_t &grid)
                 grid.maxit = std::stoi(optarg);
                 break;
             case 'w':
-                grid.width = std::stol(optarg);
+                grid.width(std::stol(optarg));
                 break;
             case 'h':
-                grid.height = std::stol(optarg);
+                grid.height(std::stol(optarg));
                 break;
             case 'o':
                 strncpy(filepath, optarg, 511);
@@ -380,7 +404,7 @@ int main(int argc, char **argv)
 {
     grid_t g;
     parse_arguments(argc, argv, g);
-    std::cout << "Image size:\t\t" << g.width << "x" << g.height 
+    std::cout << "Image size:\t\t" << g.width() << "x" << g.height() 
               << "\nTile size:\t\t" << THRESHOLD
               << "\nReal range:\t\t" << g.rmin << ".." << g.rmax
               << "\nImaginary range:\t" << g.imin << ".." << g.imax
@@ -389,19 +413,14 @@ int main(int argc, char **argv)
               << "\nFolding:\t\t" << g.do_folding
               << "\nOMP threads:\t\t" << omp_get_max_threads() 
               << "\nOutput file:\t\t" << filepath << '\n';
-    bounds_t x_bounds(0, g.width - 1), y_bounds(0, g.height - 1);
+    bounds_t x_bounds(0, g.width() - 1), y_bounds(0, g.height() - 1);
     recursion(g, x_bounds, y_bounds);
-    CSVPalette csv = CSVPalette();
-    if (csv.read(palettepath))
-    {
-        image_t image = to_image(g, csv);
-        save_png(filepath, image);
-    }
-    else
-    {
-        HSVPalette hsv = HSVPalette();
-        image_t image = to_image(g, hsv);
-        save_png(filepath, image);
-    }
+    CSVPalette csv;
+    HSVPalette hsv;
+    Palette &p = csv.read(palettepath) 
+               ? dynamic_cast<Palette&>(csv)
+               : dynamic_cast<Palette&>(hsv);
+    image_t image = to_image(g, p);
+    save_png(filepath, image);
     return 0;
 }
