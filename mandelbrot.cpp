@@ -28,7 +28,6 @@ typedef boost::multi_array<float, 2> grid_t;
 // TODO: move this into grid_t.
 float itmin = std::numeric_limits<float>::max();
 float itmax = 0;
-
 static double rmin = -1.5;
 static double rmax = 0.5;
 static double imin = -1.0;
@@ -37,6 +36,8 @@ static float maxdist = 1000.0;
 static int maxit = 100;
 static char filepath[512] = "mb.png";
 static char palettepath[512] = "palette.csv";
+
+static bool do_folding = false;
 
 /// @brief Calculates the complex number corresponding to a
 /// position on a discrete grid, using the global ranges
@@ -62,7 +63,7 @@ std::complex<double> scale(grid_t &grid, int x, int y)
 /// @param y_bounds Sub-range on imaginary axis.
 /// @return Information about borders of this sub-range overlapping
 /// the Mandelbrot set, for pruning of regions.
-collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds, bool fold=false)
+collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 {
     collision_t col;
     memset(&col, 0, sizeof(collision_t));
@@ -82,7 +83,7 @@ collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds, bool 
                 {
                     break;
                 }
-                if (fold && it == int(maxit / 2))
+                if (do_folding && it == int(maxit / 2))
                 {
                     c += z;
                 }
@@ -262,12 +263,13 @@ void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &he
         {"rmax", required_argument, NULL, '3'},
         {"imin", required_argument, NULL, '4'},
         {"imax", required_argument, NULL, '5'},
+        {"fold", no_argument, NULL, 'f'},
         {0, 0, 0, 0}};
 
     int opt;
     int option_index = 0;
 
-    while ((opt = getopt_long(argc, argv, "o:w:h:", long_options, &option_index)) != -1)
+    while ((opt = getopt_long(argc, argv, "o:w:h:f", long_options, &option_index)) != -1)
     {
         try
         {
@@ -300,6 +302,9 @@ void parse_arguments(int argc, char *argv[], std::size_t &width, std::size_t &he
             case 'p':
                 strncpy(palettepath, optarg, 511);
                 break;
+            case 'f':
+                do_folding = true;
+                break;
             default:
                 std::cerr << "Usage: mandelbrot [--rmin=<value>] [--rmax=<value>] [--imin=<value>] [--imax=<value>] "
                           << "[--maxdist=<value>] [--maxit=<value>] [--width=<value>] [--height=<value>] [--output=<path>] [--palette=<path>]" << std::endl;
@@ -320,14 +325,15 @@ int main(int argc, char **argv)
 {
     std::size_t width = 2000, height = 2000;
     parse_arguments(argc, argv, width, height);
-    std::cout << "Image size: " << width << "x" << height 
-              << "\nTile size: " << THRESHOLD
-              << "\nreal range: " << rmin << ".." << rmax
-              << "\nimaginary range: " << imin << ".." << imax
-              << "\nmax iter: " << maxit
-              << "\nmax dist: " << maxdist
-              << "\nomp threads = " << omp_get_max_threads() 
-              << "\nOutput file: " << filepath << '\n'; 
+    std::cout << "Image size:\t\t" << width << "x" << height 
+              << "\nTile size:\t\t" << THRESHOLD
+              << "\nReal range:\t\t" << rmin << ".." << rmax
+              << "\nImaginary range:\t" << imin << ".." << imax
+              << "\nIteration bound:\t" << maxit
+              << "\nEscape distance:\t" << maxdist
+              << "\nFolding:\t\t" << do_folding
+              << "\nOMP threads:\t\t" << omp_get_max_threads() 
+              << "\nOutput file:\t\t" << filepath << '\n';
     grid_t grid = grid_t(boost::extents[width][height]);
     bounds_t x_bounds(0, width - 1), y_bounds(0, height - 1);
     recursion(grid, x_bounds, y_bounds);
