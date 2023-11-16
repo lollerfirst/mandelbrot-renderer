@@ -83,6 +83,7 @@ MandelGrid::operator[](int x)
 typedef std::pair<std::size_t, std::size_t> bounds_t;
 static char filepath[512] = "mandelbrot.png";
 static char palettepath[512] = "palette.csv";
+static float progress = 0.0, prev_progress = 0.0;
 
 /// @brief Calculates the complex number corresponding to a
 /// position on a discrete grid, using the global ranges
@@ -179,9 +180,18 @@ collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 collision_t recursion(grid_t &g, bounds_t xb, bounds_t yb, int starting_quadrant = 0)
 {
     // Check if bounds are above base_grid limit
-    if ((xb.second - xb.first + 1) * (yb.second - yb.first + 1) < THRESHOLD)
+    float bounds_size = (xb.second - xb.first + 1) * (yb.second - yb.first + 1);
+    if (bounds_size < THRESHOLD)
     {
-        return mandelbrot(g, xb, yb);
+        auto collision = mandelbrot(g, xb, yb);
+        progress += bounds_size / (g.width() * g.height()) * 100.0;
+        if ((progress - prev_progress) > 1.0)
+        {
+            prev_progress = progress;
+            std::cout << "Progress: " << int(progress) << "% ...\r";
+            std::cout.flush();
+        }
+        return collision;
     }
     std::array<std::pair<bounds_t, bounds_t>, 4> quadrants;
 
