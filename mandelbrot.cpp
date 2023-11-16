@@ -357,6 +357,7 @@ void parse_arguments(int argc, char *argv[], grid_t &grid)
         {"rmax", required_argument, NULL, '3'},
         {"imin", required_argument, NULL, '4'},
         {"imax", required_argument, NULL, '5'},
+        {"maxdist", required_argument, NULL, '6'},
         {"fold", no_argument, NULL, 'f'},
         {0, 0, 0, 0}};
 
@@ -383,6 +384,9 @@ void parse_arguments(int argc, char *argv[], grid_t &grid)
                 break;
             case '1':
                 grid.maxit = std::stoi(optarg);
+                break;
+            case '6':
+                grid.maxdist = std::stod(optarg);
                 break;
             case 'w':
                 grid.width(std::stol(optarg));
