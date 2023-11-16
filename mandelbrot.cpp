@@ -111,15 +111,15 @@ collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 {
     collision_t col;
     memset(&col, 0, sizeof(collision_t));
+    int it;
 
-#pragma omp parallel for shared(grid, col)
-    for (std::size_t y = y_bounds.first; y <= y_bounds.second; y++)
+#pragma omp parallel for private(it) shared(grid, col) collapse(2)
+    for (auto y = y_bounds.first; y <= y_bounds.second; y++)
     {
-        int it;
-        for (std::size_t x = x_bounds.first; x <= x_bounds.second; x++)
+        for (auto x = x_bounds.first; x <= x_bounds.second; x++)
         {
-            std::complex<double> c = scale(grid, x, y);
-            std::complex<double> z = c;
+            auto c = scale(grid, x, y);
+            auto z = c;
             for (it = 0; it < grid.maxit; it++)
             {
                 z = z * z + c;
@@ -143,30 +143,33 @@ collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
                 else if (x == x_bounds.first)
                 {
                     col.D[2] = true;
-                }                
+                }
+                if (y == y_bounds.first)
+                {
+                    col.D[3] = true;
+                }
+                else if (y == y_bounds.second)
+                {
+                    col.D[1] = true;
+                }            
             }
             else
             {
                 di -= std::log2(std::log(std::abs(z)) / std::log(grid.maxdist));
             }
             di /= float(grid.maxit);
-            grid.itmin = std::min(grid.itmin, di);
-            grid.itmax = std::max(grid.itmax, di);
+
+#pragma omp critical
+            {
+                grid.itmin = std::min(grid.itmin, di);
+                grid.itmax = std::max(grid.itmax, di);
+                
+            }
+
             grid[x][y] = di;
         }
-
-        if (it == grid.maxit)
-        {
-            if (y == y_bounds.first)
-            {
-                col.D[3] = true;
-            }
-            else if (y == y_bounds.second)
-            {
-                col.D[1] = true;
-            }
-        }
     }
+
     return col;
 }
 
@@ -180,11 +183,11 @@ collision_t mandelbrot(grid_t &grid, bounds_t x_bounds, bounds_t y_bounds)
 collision_t recursion(grid_t &g, bounds_t xb, bounds_t yb, int starting_quadrant = 0)
 {
     // Check if bounds are above base_grid limit
-    float bounds_size = (xb.second - xb.first + 1) * (yb.second - yb.first + 1);
+    auto bounds_size = (xb.second - xb.first + 1) * (yb.second - yb.first + 1);
     if (bounds_size < THRESHOLD)
     {
         auto collision = mandelbrot(g, xb, yb);
-        progress += bounds_size / (g.width() * g.height()) * 100.0;
+        progress += float(bounds_size) / (g.width() * g.height()) * 100.0;
         if ((progress - prev_progress) > 1.0)
         {
             prev_progress = progress;
@@ -424,7 +427,7 @@ int main(int argc, char **argv)
               << "\nImaginary range:\t" << g.imin << ".." << g.imax
               << "\nIteration bound:\t" << g.maxit
               << "\nEscape distance:\t" << g.maxdist
-              << "\nFolding:\t\t" << g.do_folding
+              << "\nFolding:\t\t" << ((g.do_folding) ? "enabled" : "disabled")
               << "\nOMP threads:\t\t" << omp_get_max_threads() 
               << "\nOutput file:\t\t" << filepath << '\n';
     bounds_t x_bounds(0, g.width() - 1), y_bounds(0, g.height() - 1);

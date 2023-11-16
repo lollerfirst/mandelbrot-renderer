@@ -1,0 +1,26 @@
+// ALL TILE SIZING: 32x32
+// CPU: Intel(R) Pentium(R) CPU G645T @ 2.50GHz
+// RAM: 8GB DDR3
+// THREADS: 2 (Dual Core)
+
+// TESTS FROM mandelbrot.sh
+
+// TEST 1
+real	0m57.795s
+user	1m26.886s
+sys	0m0.521s
+
+// TEST 2
+real	2m14.249s
+user	3m33.793s
+sys	0m0.649s
+
+// TEST 4
+real	0m59.504s
+user	1m34.168s
+sys	0m0.292s
+
+// TEST 5
+real	0m53.623s
+user	1m22.075s
+sys	0m0.221s
