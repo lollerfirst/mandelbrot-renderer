@@ -8,14 +8,15 @@
 /// @return 
 image_t to_image(grid_t grid, Palette &palette)
 {
-    std::size_t width = grid.shape()[0];
-    std::size_t height = grid.shape()[1];
+    std::size_t width = grid.width;
+    std::size_t height = grid.height;
     image_t image = image_t{boost::extents[width][height]};
     for (std::size_t y = 0; y < height; y++)
     {
         for (std::size_t x = 0; x < width; x++)
         {
-            float index = (grid[x][y] - itmin) / (itmax - itmin);
+            float index = (grid[x][y] - grid.itmin) 
+                        / (grid.itmax - grid.itmin);
             image[x][y] = palette.get(index);
         }
     }
