@@ -83,7 +83,7 @@ MandelGrid::operator[](int x)
 typedef std::pair<std::size_t, std::size_t> bounds_t;
 static char filepath[512] = "mandelbrot.png";
 static char palettepath[512] = "palette.csv";
-static float progress = 0.0, prev_progress = 0.0;
+static float progress, prev_progress;
 
 /// @brief Calculates the complex number corresponding to a
 /// position on a discrete grid, using the global ranges
