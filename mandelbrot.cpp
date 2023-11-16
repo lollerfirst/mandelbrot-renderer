@@ -23,8 +23,9 @@ struct collision_t
     bool D[4]; // E-S-W-N
 };
 
+/// @brief Keep track of parameters and iteration counts of mandelbrot.
 MandelGrid::MandelGrid(
-    int width, int height,
+    std::size_t width, std::size_t height,
     double rmin, double rmax,
     double imin, double imax,
     long maxit, double maxdist,
@@ -43,6 +44,10 @@ MandelGrid::MandelGrid(
     this->do_folding = do_folding;
 }
 
+/// @brief Get a row of the grid, further indexable by y, 
+/// so as to support access by [x][y].
+/// @param x The number of the row.
+/// @return A row in the grid.
 boost::detail::multi_array::sub_array<float, 1UL> 
 MandelGrid::operator[](int x)
 {
